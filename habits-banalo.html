@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rise & Shine Habit Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* CSS Variables for easier theming */
+      :root {
+        --bg-color: #1f2937; /* Cool Dark Gray */
+        --card-bg-color: #374151; /* Slightly Lighter Gray */
+        --text-color: #f3f4f6; /* Light Gray */
+        --primary-color: #34d399; /* Emerald Green */
+        --primary-hover-color: #10b981; /* Darker Emerald */
+        --secondary-color: #facc15; /* Yellow */
+        --accent-color: #f87171; /* Soft Red */
+        --disabled-color: #6b7280; /* Medium Gray */
+        --input-bg-color: #4b5563; /* Gray */
+        --border-color: #4b5563;
+        --font-family: "Inter", sans-serif;
+        --border-radius: 8px;
+        --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1),
+          0 1px 3px rgba(0, 0, 0, 0.08);
+        --transition-speed: 0.3s;
+      }
+
+      /* General Body Styles */
+      body {
+        font-family: var(--font-family);
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center; /* Center content vertically */
+        min-height: 100vh;
+        padding: 20px;
+        margin: 0;
+        box-sizing: border-box; /* Include padding in width/height */
+      }
+
+      /* Main container for the tracker */
+      .tracker-container {
+        background-color: var(--card-bg-color);
+        padding: 30px 40px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        width: 100%;
+        max-width: 450px; /* Limit max width for larger screens */
+        text-align: center;
+        transition: all var(--transition-speed) ease; /* Smooth transitions */
+      }
+
+      /* Headings */
+      h1 {
+        font-size: 2.2rem; /* Responsive font size */
+        margin-bottom: 15px;
+        color: var(--secondary-color);
+        font-weight: 700;
+      }
+
+      h2 {
+        margin-top: 30px;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+
+      /* Input fields and Buttons */
+      input[type="time"],
+      button {
+        padding: 12px 18px;
+        font-size: 1rem;
+        border-radius: var(--border-radius);
+        border: none;
+        margin: 8px 4px; /* Slightly adjusted margin */
+        transition: all var(--transition-speed) ease;
+        font-family: inherit; /* Use body font */
+        cursor: pointer;
+      }
+
+      input[type="time"] {
+        background-color: var(--input-bg-color);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        cursor: text;
+      }
+      input[type="time"]:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.3); /* Focus ring */
+      }
+
+      /* General Button Styling */
+      button {
+        background-color: var(--primary-color);
+        color: var(--bg-color); /* Dark text on light button */
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      button:hover:not(:disabled) {
+        background-color: var(--primary-hover-color);
+        transform: translateY(-2px); /* Subtle lift effect */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      button:active:not(:disabled) {
+        transform: translateY(0px); /* Press down effect */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Specific Button Styles */
+      #wokeUpBtn {
+        background-color: var(--secondary-color);
+        color: var(--bg-color);
+        margin-top: 20px; /* Add space above main action button */
+        width: 80%; /* Make main button wider */
+        padding: 15px 20px;
+        font-size: 1.1rem;
+      }
+      #wokeUpBtn:hover:not(:disabled) {
+        background-color: #eab308; /* Darker Yellow */
+      }
+
+      /* Disabled State */
+      button:disabled {
+        background-color: var(--disabled-color);
+        color: #cbd5e1; /* Lighter text for disabled */
+        cursor: not-allowed;
+        opacity: 0.7;
+        box-shadow: none;
+      }
+
+      /* Result/Feedback Area */
+      #result,
+      #messageArea {
+        padding: 15px;
+        border-radius: var(--border-radius);
+        margin-top: 25px;
+        text-align: center;
+        font-weight: 500;
+        opacity: 0; /* Hidden initially */
+        transform: translateY(10px); /* Start slightly lower */
+        transition: opacity var(--transition-speed) ease,
+          transform var(--transition-speed) ease;
+        min-height: 2.5em; /* Prevent layout shift */
+        display: flex; /* Use flex for centering */
+        align-items: center;
+        justify-content: center;
+      }
+      #result.show,
+      #messageArea.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Result specific styles */
+      #result.success {
+        background-color: rgba(52, 211, 153, 0.2); /* Light Green background */
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+      }
+      #result.fail {
+        background-color: rgba(248, 113, 113, 0.2); /* Light Red background */
+        color: var(--accent-color);
+        border: 1px solid var(--accent-color);
+      }
+
+      /* Message Area specific styles */
+      #messageArea.info {
+        background-color: rgba(96, 165, 250, 0.2); /* Light Blue background */
+        color: #60a5fa; /* Blue */
+        border: 1px solid #60a5fa;
+      }
+      #messageArea.warning {
+        background-color: rgba(251, 146, 60, 0.2); /* Light Orange background */
+        color: #fb923c; /* Orange */
+        border: 1px solid #fb923c;
+      }
+
+      /* Streak Display */
+      #streak {
+        margin-top: 25px;
+        font-size: 1.3rem;
+        color: var(--secondary-color);
+        font-weight: 700;
+        opacity: 0; /* Hidden initially */
+        transition: opacity var(--transition-speed) ease,
+          color var(--transition-speed) ease;
+      }
+      #streak.show {
+        opacity: 1;
+      }
+      #streak.updated {
+        /* Add a subtle glow effect on update */
+        animation: pulse 1s ease-out;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+          color: #fff;
+        } /* Scale up and brighten */
+        100% {
+          transform: scale(1);
+          color: var(--secondary-color);
+        }
+      }
+
+      /* Notices */
+      .notice {
+        font-size: 0.9rem;
+        margin-top: 10px;
+        color: #9ca3af; /* Lighter gray for notices */
+        line-height: 1.4;
+      }
+      #setTimeNotice {
+        min-height: 1.4em; /* Prevent layout shift */
+      }
+
+      /* Divider */
+      .divider {
+        border-top: 1px solid var(--border-color);
+        margin: 40px 0;
+        width: 100%;
+      }
+
+      /* Footer with GitHub profile */
+      .footer {
+        margin-top: 20px;
+        font-size: 0.95rem;
+        color: #9ca3af;
+      }
+
+      .footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: color var(--transition-speed) ease;
+        font-weight: 500;
+      }
+
+      .footer a:hover {
+        color: var(--primary-hover-color);
+        text-decoration: underline;
+      }
+
+      /* Streak Counter in Footer */
+      .streak-counter {
+        margin-top: 12px;
+        font-size: 1rem;
+        padding: 6px 12px;
+        background-color: rgba(250, 204, 21, 0.15);
+        border-radius: var(--border-radius);
+        display: inline-block;
+        color: var(--secondary-color);
+        font-weight: 500;
+        border: 1px solid rgba(250, 204, 21, 0.3);
+      }
+
+      .streak-counter span {
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+
+      /* Responsive Adjustments */
+      @media (max-width: 480px) {
+        .tracker-container {
+          padding: 20px;
+        }
+        h1 {
+          font-size: 1.8rem;
+        }
+        h2 {
+          font-size: 1.3rem;
+        }
+        input[type="time"],
+        button {
+          font-size: 0.9rem;
+          padding: 10px 14px;
+          width: auto; /* Allow buttons to size naturally */
+          display: block; /* Stack time input and button */
+          margin: 10px auto; /* Center stacked elements */
+          width: 80%; /* Make them take similar width */
+        }
+        #wokeUpBtn {
+          padding: 12px 18px;
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tracker-container">
+      <h1>🔥 Rise & Shine</h1>
+      <p class="notice">Your personal space to build a great morning habit!</p>
+
+      <h2>⏰ Set Your Goal</h2>
+
+      <div>
+        <label for="wakeTime">Target Wake-Up Time:</label><br />
+        <input type="time" id="wakeTime" aria-label="Target Wake-Up Time" />
+        <button id="setTimeBtn" onclick="setTime()">Set My Rise Time ✨</button>
+        <div class="notice" id="setTimeNotice">Ready to set your goal!</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>Ready for Today?</h2>
+
+      <div id="messageArea" role="alert" aria-live="polite"></div>
+
+      <button id="wokeUpBtn" onclick="wokeUp()">☀️ Greet the Day!</button>
+
+      <div id="result" role="status" aria-live="polite"></div>
+
+      <div id="streak" class="streak" aria-live="polite"></div>
+
+      <div class="divider"></div>
+
+      <div class="notice">
+        💡 Keep crushing it! More awesome habit tools coming soon...
+      </div>
+
+      <div class="footer">
+        <div class="streak-counter">
+          Current Streak: <span id="footerStreak">0</span> days
+        </div>
+        <p>
+          Created by Satyajeet<br />
+          <a href="https://github.com/satyajeetk96" target="_blank"
+            >github.com/satyajeetk96</a
+          >
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // --- DOM Elements ---
+      const wakeTimeInput = document.getElementById("wakeTime");
+      const setTimeBtn = document.getElementById("setTimeBtn");
+      const setTimeNotice = document.getElementById("setTimeNotice");
+      const wokeUpBtn = document.getElementById("wokeUpBtn");
+      const resultDiv = document.getElementById("result");
+      const streakDiv = document.getElementById("streak");
+      const messageArea = document.getElementById("messageArea");
+      const footerStreak = document.getElementById("footerStreak");
+
+      // --- State Variables ---
+      let wakeUpTime = localStorage.getItem("wakeUpTime") || "06:30"; // Default time
+      let currentStreak = parseInt(localStorage.getItem("streak")) || 0;
+      let lastWakeUpDate = localStorage.getItem("lastWakeUpDate");
+      let lastWakeTimeSetDate = localStorage.getItem("lastWakeTimeSetDate");
+
+      // --- Initialization ---
+      function initializeApp() {
+        wakeTimeInput.value = wakeUpTime; // Set input value
+        updateStreakDisplay(currentStreak); // Display initial streak
+        updateFooterStreak(currentStreak); // Update streak in footer
+        streakDiv.classList.add("show"); // Make streak visible
+        checkWokeUpButtonState(); // Check if 'Greet the Day' should be disabled
+        checkSetTimeState(); // Check if 'Set Time' should be disabled
+      }
+
+      // --- Core Logic Functions ---
+
+      /**
+       * Sets the target wake-up time and saves it.
+       */
+      function setTime() {
+        const newTime = wakeTimeInput.value;
+        if (!newTime) {
+          showMessage("Hmm, please select a valid time first!", "warning");
+          return;
+        }
+        wakeUpTime = newTime;
+        localStorage.setItem("wakeUpTime", wakeUpTime);
+        localStorage.setItem("lastWakeTimeSetDate", getTodayDateString());
+
+        showMessage(
+          `Rise time set to ${formatTime(wakeUpTime)}! Let's do this! 💪`,
+          "info"
+        );
+        checkSetTimeState(); // Re-check state to disable button and show cooldown
+      }
+
+      /**
+       * Handles the 'Greet the Day!' button click.
+       */
+      function wokeUp() {
+        const today = getTodayDateString();
+
+        // Prevent multiple clicks per day
+        if (lastWakeUpDate === today) {
+          showMessage(
+            "You've already greeted today! See you tomorrow! 👋",
+            "info"
+          );
+          return;
+        }
+
+        const currentTime = new Date();
+        const targetTime = getTimeFromString(wakeUpTime);
+        const threeHoursBefore = new Date(
+          targetTime.getTime() - 3 * 60 * 60 * 1000
+        );
+
+        // Prevent marking too early
+        if (currentTime < threeHoursBefore) {
+          showMessage(
+            `A bit eager! 😉 You can mark wake-up from ${formatTime(
+              threeHoursBefore.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
+            )}.`,
+            "warning"
+          );
+          return;
+        }
+
+        let resultMessage = "";
+        let resultClass = "";
+
+        // Compare current time with target time
+        if (currentTime <= targetTime) {
+          // Success!
+          resultMessage = "Rise and shine! You nailed it! 🎉";
+          resultClass = "success";
+          currentStreak += 1;
+        } else {
+          // Late
+          resultMessage = "Oops, a sleepy start! Tomorrow's a fresh chance! ☀️";
+          resultClass = "fail";
+          currentStreak = 0; // Reset streak
+        }
+
+        // Update UI and Local Storage
+        displayResult(resultMessage, resultClass);
+        localStorage.setItem("streak", currentStreak);
+        localStorage.setItem("lastWakeUpDate", today);
+        lastWakeUpDate = today; // Update state variable
+
+        updateStreakDisplay(currentStreak, true); // Update streak display and add pulse effect
+        updateFooterStreak(currentStreak, true); // Update footer streak with animation
+        disableWokeUpButton(); // Disable button for today
+        clearMessageAreaAfterDelay(); // Clear any info messages
+      }
+
+      // --- UI Update Functions ---
+
+      /**
+       * Displays the result message (success/fail).
+       * @param {string} message - The message text.
+       * @param {string} type - 'success' or 'fail'.
+       */
+      function displayResult(message, type) {
+        resultDiv.innerHTML = message;
+        resultDiv.className = type; // Add 'success' or 'fail' class
+        resultDiv.classList.add("show"); // Make it visible with animation
+      }
+
+      /**
+       * Displays general messages (info, warnings).
+       * @param {string} message - The message text.
+       * @param {string} type - 'info', 'warning'.
+       */
+      function showMessage(message, type) {
+        messageArea.innerHTML = message;
+        messageArea.className = type; // Add 'info' or 'warning' class
+        messageArea.classList.add("show"); // Make it visible with animation
+      }
+
+      /**
+       * Clears the general message area after a delay.
+       */
+      function clearMessageAreaAfterDelay(delay = 4000) {
+        setTimeout(() => {
+          messageArea.classList.remove("show");
+          // Optional: Clear content after fade out
+          setTimeout(() => {
+            messageArea.innerHTML = "";
+            messageArea.className = "";
+          }, 500);
+        }, delay);
+      }
+
+      /**
+       * Updates the streak counter display.
+       * @param {number} streak - The current streak count.
+       * @param {boolean} [pulsate=false] - Whether to add a pulse animation.
+       */
+      function updateStreakDisplay(streak, pulsate = false) {
+        if (streak > 0) {
+          streakDiv.innerText = `☀️ On a Roll: ${streak} day${
+            streak > 1 ? "s" : ""
+          }!`;
+        } else {
+          streakDiv.innerText = "Let's start a new streak! ✨";
+        }
+        streakDiv.classList.add("show"); // Ensure it's visible
+
+        if (pulsate) {
+          streakDiv.classList.remove("updated"); // Remove class first to re-trigger animation
+          // Use requestAnimationFrame to ensure the class removal is processed before adding it back
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              streakDiv.classList.add("updated");
+            });
+          });
+        }
+      }
+
+      /**
+       * Updates the footer streak counter.
+       * @param {number} streak - The current streak count.
+       * @param {boolean} [animate=false] - Whether to animate the update.
+       */
+      function updateFooterStreak(streak, animate = false) {
+        footerStreak.textContent = streak;
+
+        if (animate) {
+          // Add a simple pulse animation
+          footerStreak.style.transition =
+            "transform 0.3s ease, color 0.3s ease";
+          footerStreak.style.transform = "scale(1.3)";
+          footerStreak.style.color = "#ffffff";
+
+          setTimeout(() => {
+            footerStreak.style.transform = "scale(1)";
+            footerStreak.style.color = "";
+          }, 500);
+        }
+      }
+
+      // --- Button State Management ---
+
+      /**
+       * Checks if the 'Greet the Day!' button should be disabled.
+       */
+      function checkWokeUpButtonState() {
+        const today = getTodayDateString();
+        if (lastWakeUpDate === today) {
+          disableWokeUpButton();
+          // Optionally show the previous result if page is reloaded same day
+          // This requires storing the last result message/type, which adds complexity
+          showMessage("You already checked in for today. Great job!", "info");
+        } else {
+          enableWokeUpButton();
+        }
+      }
+
+      /**
+       * Disables the 'Greet the Day!' button.
+       */
+      function disableWokeUpButton() {
+        wokeUpBtn.disabled = true;
+        wokeUpBtn.innerText = "✔️ All Set for Today!";
+      }
+
+      /**
+       * Enables the 'Greet the Day!' button.
+       */
+      function enableWokeUpButton() {
+        wokeUpBtn.disabled = false;
+        wokeUpBtn.innerText = "☀️ Greet the Day!";
+      }
+
+      /**
+       * Checks if the 'Set Time' button should be disabled (7-day cooldown).
+       */
+      function checkSetTimeState() {
+        if (lastWakeTimeSetDate) {
+          const lastSet = new Date(lastWakeTimeSetDate);
+          const now = new Date();
+          // Calculate difference in days (ignoring time part)
+          const diffTime =
+            now.setHours(0, 0, 0, 0) - lastSet.setHours(0, 0, 0, 0);
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+          const cooldownDays = 7;
+
+          if (diffDays < cooldownDays) {
+            disableSetTimeButton();
+            const daysRemaining = cooldownDays - diffDays;
+            setTimeNotice.innerText = `⏳ You can set a new time in ${daysRemaining} day${
+              daysRemaining > 1 ? "s" : ""
+            }.`;
+          } else {
+            enableSetTimeButton();
+            setTimeNotice.innerText = "✅ Ready to adjust your goal time?";
+          }
+        } else {
+          enableSetTimeButton();
+          setTimeNotice.innerText = "🕒 Set your target time to begin!";
+        }
+      }
+
+      /**
+       * Disables the 'Set Time' button.
+       */
+      function disableSetTimeButton() {
+        setTimeBtn.disabled = true;
+      }
+
+      /**
+       * Enables the 'Set Time' button.
+       */
+      function enableSetTimeButton() {
+        setTimeBtn.disabled = false;
+      }
+
+      // --- Utility Functions ---
+
+      /**
+       * Gets today's date as a YYYY-MM-DD string.
+       * @returns {string} Today's date string.
+       */
+      function getTodayDateString() {
+        return new Date().toISOString().split("T")[0];
+      }
+
+      /**
+       * Converts a HH:MM time string into a Date object for today.
+       * @param {string} timeString - The time string (e.g., "06:30").
+       * @returns {Date} A Date object set to today's date and the specified time.
+       */
+      function getTimeFromString(timeString) {
+        const [hours, minutes] = timeString.split(":").map(Number);
+        const date = new Date();
+        date.setHours(hours, minutes, 0, 0);
+        return date;
+      }
+
+      /**
+       * Formats a time string (like 06:30) or Date object into a more readable format (e.g., 6:30 AM).
+       * @param {string|Date} time - The time string or Date object.
+       * @returns {string} Formatted time string.
+       */
+      function formatTime(time) {
+        let date;
+        if (typeof time === "string") {
+          date = getTimeFromString(time);
+        } else {
+          date = time;
+        }
+        return date.toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+      }
+
+      // --- Run Initialization on Load ---
+      document.addEventListener("DOMContentLoaded", initializeApp);
+    </script>
+  </body>
+</html>
